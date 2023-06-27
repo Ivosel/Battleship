@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 
 namespace Vsite.Oom.Battleship.Model
 {
-    using SquareSequence = IEnumerable<Square>;
     using Sequences = IEnumerable<IEnumerable<Square>>;
-    using SquareAccess = Func<int, int, Square>;
+    using SqaureAccess = Func<int, int, Square>;
+    using SquareSequence = IEnumerable<Square>;
 
     public enum Direction
     {
@@ -47,7 +43,10 @@ namespace Vsite.Oom.Battleship.Model
         public Sequences GetAvailableSequences(int length)
         {
             var result = GetAvailableHorizontalSequences(length);
-            if (length == 1) return result;
+            if (length == 1)
+            {
+                return result;
+            }
             return result.Concat(GetAvailableVerticalSequences(length));
         }
 
@@ -55,16 +54,14 @@ namespace Vsite.Oom.Battleship.Model
         {
             return GetAvailableSequences(Rows, Columns, (a, b) => squares[a, b], length);
         }
-
         private Sequences GetAvailableVerticalSequences(int length)
         {
             return GetAvailableSequences(Columns, Rows, (a, b) => squares[b, a], length);
-
         }
 
         protected abstract bool IsAvailable(Square square);
 
-        private Sequences GetAvailableSequences(int outerLoopLimit, int innerLoopLimit, SquareAccess squareAccess, int length)
+        private Sequences GetAvailableSequences(int outerLoopLimit, int innerLoopLimit, SqaureAccess squareAccess, int length)
         {
             var result = new List<SquareSequence>();
             for (int o = 0; o < outerLoopLimit; ++o)
@@ -83,7 +80,6 @@ namespace Vsite.Oom.Battleship.Model
                     else
                     {
                         queue.Clear();
-                        if (length > innerLoopLimit) break;
                     }
                 }
             }

@@ -12,7 +12,10 @@
         public HitResult Fire(Square target)
         {
             var found = Squares.FirstOrDefault(s => s == target);
-            if (found == null) return HitResult.Missed;
+            if (found == null)
+            {
+                return HitResult.Missed;
+            }
             found.Mark(HitResult.Hit);
             if (Squares.All(s => s.SquareState == SquareState.Hit))
             {

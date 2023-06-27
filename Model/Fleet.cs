@@ -24,5 +24,4 @@
 
         public IEnumerable<Ship> Ships => ships;
     }
-
 }

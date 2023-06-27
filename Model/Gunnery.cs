@@ -1,28 +1,27 @@
 ﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
 
 namespace Vsite.Oom.Battleship.Model
 {
+    public enum CurrentShootingTactics
+    {
+        Random,
+        Zone,
+        Line
+    }
+
     public class Gunnery
     {
-        public enum CurrentShootingTactics
-        {
-            Random,
-            Zone,
-            Line
-        }
-
         public Gunnery(GameRules gameRules)
         {
             this.gameRules = gameRules;
             grid = new RecordGrid(gameRules.GridRows, gameRules.GridColumns);
-            shipLengths = new List<int>(gameRules.ShipLengts);
+            shipLengths = new List<int>(gameRules.ShipLengths);
             ChangeToRandom();
         }
 
         GameRules gameRules;
 
-        public Square nextTarget()
+        public Square NextTarget()
         {
             lastTarget = shootingTactics.NextTarget();
             return lastTarget;
@@ -33,7 +32,6 @@ namespace Vsite.Oom.Battleship.Model
             RecordHitResult(hitResult);
             ChangeTactics(hitResult);
         }
-
         private void RecordHitResult(HitResult hitResult)
         {
             if (hitResult != HitResult.Missed)
@@ -43,10 +41,9 @@ namespace Vsite.Oom.Battleship.Model
             if (hitResult == HitResult.Sunk)
             {
                 var toEliminate = gameRules.Terminator.ToEliminate(hitSquares);
-                foreach(var square in toEliminate)
+                foreach (var square in toEliminate)
                 {
                     grid.Eliminate(square.Row, square.Column);
-
                 }
                 foreach (var square in hitSquares)
                 {
@@ -71,7 +68,7 @@ namespace Vsite.Oom.Battleship.Model
                     ChangeToRandom();
                     return;
                 case HitResult.Hit:
-                    switch (currentShootingTactics)
+                    switch (CurrentShootingTactics)
                     {
                         case CurrentShootingTactics.Random:
                             ChangeToZone();
@@ -95,28 +92,29 @@ namespace Vsite.Oom.Battleship.Model
         private void ChangeToLine()
         {
             shootingTactics = new LineShooting(grid, hitSquares, shipLengths);
-            currentShootingTactics = CurrentShootingTactics.Line;
+            CurrentShootingTactics = CurrentShootingTactics.Line;
         }
 
         private void ChangeToZone()
         {
             shootingTactics = new ZoneShooting(grid, lastTarget, shipLengths);
-            currentShootingTactics = CurrentShootingTactics.Zone;
+            CurrentShootingTactics = CurrentShootingTactics.Zone;
         }
 
         private void ChangeToRandom()
         {
             shootingTactics = new RandomShooting(grid, shipLengths);
-            currentShootingTactics = CurrentShootingTactics.Random;
+            CurrentShootingTactics = CurrentShootingTactics.Random;
         }
 
         private readonly RecordGrid grid;
-        private List<int> shipLengths;
+        private readonly List<int> shipLengths;
+
         private IShootingTactics shootingTactics;
 
         List<Square> hitSquares = new List<Square>();
         Square lastTarget;
 
-        public CurrentShootingTactics currentShootingTactics { get; private set; }
+        public CurrentShootingTactics CurrentShootingTactics { get; private set; }
     }
 }

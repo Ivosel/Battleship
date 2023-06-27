@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vsite.Oom.Battleship.Model
+﻿namespace Vsite.Oom.Battleship.Model
 {
     using SquareSequence = IEnumerable<Square>;
 
@@ -21,7 +15,7 @@ namespace Vsite.Oom.Battleship.Model
 
         public void MarkSquare(int row, int column, HitResult hitResult)
         {
-            squares[row, column].Mark(HitResult.Hit);
+            squares[row, column].Mark(hitResult);
         }
 
         public SquareSequence GetAvailableSequence(Square from, Direction direction)

@@ -1,22 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vsite.Oom.Battleship.Model
+﻿namespace Vsite.Oom.Battleship.Model
 {
     using SquareSequence = IEnumerable<Square>;
-
     public class FleetGrid : Grid
     {
         public FleetGrid(int rows, int columns) : base(rows, columns)
         {
-        }
-
-        protected override bool IsAvailable(Square square)
-        {
-            return square != null;
         }
 
         public void RemoveSquare(int row, int column)
@@ -30,6 +18,11 @@ namespace Vsite.Oom.Battleship.Model
             {
                 RemoveSquare(square.Row, square.Column);
             }
+        }
+
+        protected override bool IsAvailable(Square square)
+        {
+            return square != null;
         }
     }
 }

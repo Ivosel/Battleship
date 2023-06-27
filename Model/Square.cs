@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
 namespace Vsite.Oom.Battleship.Model
 {
@@ -27,6 +22,7 @@ namespace Vsite.Oom.Battleship.Model
 
         public readonly int Row;
         public readonly int Column;
+
         public SquareState SquareState { get; private set; }
 
         public void Mark(HitResult hitResult)
@@ -55,7 +51,10 @@ namespace Vsite.Oom.Battleship.Model
 
         public bool Equals(Square other)
         {
-            if (GetType() != other.GetType()) return false;
+            if (GetType() != other.GetType())
+            {
+                return false;
+            }
             return Row == other.Row && Column == other.Column;
         }
 
