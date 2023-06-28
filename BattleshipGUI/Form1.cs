@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using Vsite.Oom.Battleship.Model;
 
@@ -8,8 +9,6 @@ namespace BattleshipGUI
         private FleetBuilder fleetGenerator;
         private Fleet playerFleet;
         private Fleet computerFleet;
-        private FleetGrid playerGrid;
-        private RecordGrid computerGrid;
         private readonly GameRules rules;
         private Gunnery computerGunnery;
 
@@ -17,13 +16,12 @@ namespace BattleshipGUI
         public Form1()
         {
             rules = new GameRules();
-            playerGrid = new FleetGrid(10, 10);
-            computerGrid = new RecordGrid(10, 10);
             computerGunnery = new Gunnery(rules);
             fleetGenerator = new FleetBuilder(rules);
             playerFleet = fleetGenerator.CreateFleet();
             computerFleet = fleetGenerator.CreateFleet();
             InitializeComponent();
+            remainingShips1.UpdateRemainingShips(computerFleet);
         }
 
         private void newFleetButton_Click(object sender, EventArgs e)
@@ -43,13 +41,7 @@ namespace BattleshipGUI
 
         private void myGrid_Load(object sender, EventArgs e)
         {
-            foreach (Ship ship in playerFleet.Ships)
-            {
-                foreach (Square square in ship.Squares)
-                {
-                    myGrid.buttons[square.Row, square.Column].BackColor = Color.Blue;
-                }
-            }
+            FillPlayerGrid();
             myGrid.Refresh();
         }
 
@@ -58,19 +50,48 @@ namespace BattleshipGUI
             opponentGrid.AttachOpponentButtonClickEvent(RecordGridButtonClick);
         }
 
+        private void FillPlayerGrid()
+        {
+            foreach (Ship ship in playerFleet.Ships)
+            {
+                foreach (Square square in ship.Squares)
+                {
+                    myGrid.buttons[square.Row, square.Column].BackColor = Color.Blue;
+                }
+            }
+        }
+
+
         private void RecordGridButtonClick(object sender, EventArgs e)
         {
+            newFleetButton.Enabled = false;
+
             Button button = (Button)sender;
             GridButton gridButton = (GridButton)button;
 
             int row = gridButton.Row;
             int column = gridButton.Column;
 
-            foreach (Ship ship in computerFleet.Ships)
+            Square target = new Square(row, column);
+
+            HitResult result = computerFleet.Fire(target);
+            target.Mark(result);
+            UpdateGridButton(target, result, opponentGrid, computerFleet);
+            button.Enabled = false;
+
+            remainingShips1.UpdateRemainingShips(computerFleet);
+
+            if (!computerFleet.Ships.Any(s => s.Squares.Any(ss => ss.SquareState == SquareState.Initial)))
             {
-                foreach (Square square in ship.Squares)
+                DialogResult newGame = MessageBox.Show("You have won! Do you want to play another game?", "Congratulations!", MessageBoxButtons.YesNo);
+
+                if (newGame == DialogResult.Yes)
                 {
-                    if (row == square.Row && column == square.Column) opponentGrid.buttons[row, column].BackColor = Color.Red;
+                    ReloadForm();
+                }
+                else
+                {
+                    Close();
                 }
             }
 
@@ -78,9 +99,9 @@ namespace BattleshipGUI
         }
 
 
-        private GridButton GetPlayerGridButton(Square target)
+        private GridButton GetGridButton(Square target, Grid grid)
         {
-            foreach (GridButton button in myGrid.Controls)
+            foreach (GridButton button in grid.Controls)
             {
                 if (button.Row == target.Row && button.Column == target.Column)
                 {
@@ -91,9 +112,9 @@ namespace BattleshipGUI
         }
 
 
-        private void UpdatePlayerGridButton(Square target, HitResult result)
+        private void UpdateGridButton(Square target, HitResult result, Grid grid, Fleet fleet)
         {
-            GridButton button = GetPlayerGridButton(target);
+            GridButton button = GetGridButton(target, grid);
 
             switch (result)
             {
@@ -101,7 +122,15 @@ namespace BattleshipGUI
                     button.BackColor = Color.Red;
                     break;
                 case HitResult.Sunk:
-                    button.BackColor = Color.DarkRed;
+                    var ship = fleet.Ships.FirstOrDefault(s => s.Squares.Contains(target));
+                    if (ship != null)
+                    {
+                        foreach (var square in ship.Squares)
+                        {
+                            GridButton shipButton = GetGridButton(square, grid);
+                            shipButton.BackColor = Color.DarkRed;
+                        }
+                    }
                     break;
                 case HitResult.Missed:
                     button.BackColor = Color.Gray;
@@ -121,8 +150,47 @@ namespace BattleshipGUI
 
             computerGunnery.ProcessHitResult(result);
 
-            UpdatePlayerGridButton(target, result);
+            UpdateGridButton(target, result, myGrid, playerFleet);
 
+            if (!playerFleet.Ships.Any(s => s.Squares.Any(ss => ss.SquareState == SquareState.Initial)))
+            {
+                DialogResult newGame = MessageBox.Show("Computer has won! Do you want to play another game?", "Game Over", MessageBoxButtons.YesNo);
+
+                if (newGame == DialogResult.Yes)
+                {
+                    ReloadForm();
+                }
+                else
+                {
+                    this.Close();
+                }
+            }
+
+        }
+
+        private void ReloadForm()
+        {
+            computerGunnery = new Gunnery(rules);
+            fleetGenerator = new FleetBuilder(rules);
+            playerFleet = fleetGenerator.CreateFleet();
+            computerFleet = fleetGenerator.CreateFleet();
+            newFleetButton.Enabled = true;
+
+            foreach (GridButton button in myGrid.buttons)
+            {
+                button.BackColor = SystemColors.Control;
+            }
+
+            foreach (GridButton button in opponentGrid.buttons)
+            {
+                button.BackColor = SystemColors.Control;
+                button.Enabled = true;
+            }
+
+            FillPlayerGrid();
+            remainingShips1.UpdateRemainingShips(computerFleet);
+            myGrid.Refresh();
+            opponentGrid.Refresh();
         }
     }
 
